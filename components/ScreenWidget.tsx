@@ -47,10 +47,19 @@ export default function ScreenWidget() {
   const pointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => { if (!selecting || !start.current) return; const next = getRectangle(start.current, point(event)); setSelection(next); draw(next); };
   const pointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => { if (!selecting || !start.current) return; const next = getRectangle(start.current, point(event)); start.current = null; setSelection(next); setSelecting(false); draw(next); setStatus("Region selected. Type or paste the question below."); };
 
+  const openWidget = async () => {
+    setOpen(true); setStatus("Full-screen capture mode is open. Capture or type a question.");
+    try { await document.documentElement.requestFullscreen(); } catch { /* Browser fullscreen is optional. */ }
+  };
+  const closeWidget = async () => {
+    setOpen(false);
+    if (document.fullscreenElement) await document.exitFullscreen();
+  };
+
   return <>
-    <button className="widget-launch" onClick={() => { setOpen(true); setStatus("Screen widget opened. Capture or type a question."); }}>⊞ Add screen widget</button>
+    <button className="widget-launch" onClick={openWidget}>⊞ Open full-screen capture</button>
     {open && <aside className="screen-widget" aria-label="Screen Answer widget">
-      <div className="widget-header"><strong>Screen Answer</strong><button aria-label="Close widget" onClick={() => setOpen(false)}>×</button></div>
+      <div className="widget-header"><strong>Screen Answer</strong><button aria-label="Close widget" onClick={closeWidget}>×</button></div>
       <div className="widget-actions"><button className="widget-primary" onClick={capture}>Capture</button><button onClick={beginSelection}>Select</button></div>
       {image.current && <canvas ref={canvas} className="widget-canvas" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} />}
       {!image.current && <canvas ref={canvas} className="widget-canvas" hidden />}
